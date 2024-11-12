@@ -17,4 +17,6 @@ This application allows users to design and implement an email marketing sequenc
 ### Setup
 1. Clone the repository:
    ```bash
+   git clone <repository-url>
+   cd backend
 
