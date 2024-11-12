@@ -17,6 +17,6 @@ This application allows users to design and implement an email marketing sequenc
 ### Setup
 1. Clone the repository:
    ```bash
-   git clone <https://github.com/AakashRam70/FutureBlink_Assignment.git>
+   git clone https://github.com/AakashRam70/FutureBlink_Assignment.git
    cd backend
 
