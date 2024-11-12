@@ -1,8 +1,7 @@
-import express from 'express';
-import { scheduleEmail } from '../controllers/emailController.js';
-
+const express = require('express');
+const { saveFlow } = require('../controllers/emailController');
 const router = express.Router();
 
-router.post('/schedule', scheduleEmail);
+router.post('/flow/save', saveFlow);
 
-export default router;
+module.exports = router;

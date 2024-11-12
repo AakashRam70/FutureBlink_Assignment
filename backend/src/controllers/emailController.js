@@ -1,30 +1,17 @@
-import agenda from '../config/agenda.js';
-import transporter from '../config/nodemailer.js';
+const agenda = require('../agenda');
 
-export const scheduleEmail = async (req, res) => {
-    const { email, subject, body, delay } = req.body;
+exports.saveFlow = async (req, res) => {
+    const { nodes, edges } = req.body;
 
-    try {
-        await agenda.schedule(delay, 'send email', { email, subject, body });
-        res.status(200).json({ message: 'Email scheduled successfully!' });
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to schedule email' });
-    }
+    nodes.forEach(async (node) => {
+        if (node.type === 'coldEmail') {
+            const { email, subject, text } = node.data;
+            const delayNode = edges.find((edge) => edge.source === node.id && nodes.find((n) => n.id === edge.target && n.type === 'waitDelay'));
+
+            const delay = delayNode ? delayNode.data.delay : 0;
+            await agenda.schedule(`in ${delay} minutes`, 'send email', { to: email, subject, text });
+        }
+    });
+
+    res.status(200).json({ message: 'Flow saved and emails scheduled' });
 };
-
-// Define the job
-agenda.define('send email', async (job) => {
-    const { email, subject, body } = job.attrs.data;
-
-    try {
-        await transporter.sendMail({
-            from: process.env.SMTP_USER,
-            to: email,
-            subject,
-            text: body,
-        });
-        console.log(`Email sent to ${email}`);
-    } catch (error) {
-        console.error('Error sending email:', error);
-    }
-});

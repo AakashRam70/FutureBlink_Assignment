@@ -1,86 +1,85 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import ReactFlow, {
-    addEdge,
+    ReactFlowProvider,
     Background,
     Controls,
-    MiniMap,
-    useEdgesState,
+    addEdge,
     useNodesState,
+    useEdgesState,
+    Connection,
+    Edge,
+    Node,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import { Box, Button, Stack } from '@mui/material';
+import axios from 'axios';
 
-const initialNodes = [
-    { id: '1', type: 'input', data: { label: 'Lead Source' }, position: { x: 250, y: 5 } },
+type NodeType = 'coldEmail' | 'waitDelay' | 'leadSource';
+
+interface CustomNode extends Node {
+    type: NodeType;
+    data: {
+        label: string;
+        email?: string;
+        subject?: string;
+        delay?: number;
+    };
+}
+
+const initialNodes: CustomNode[] = [
+    { id: '1', type: 'leadSource', position: { x: 250, y: 100 }, data: { label: 'Lead Source' } }
 ];
-
-const nodeTypes = {
-    coldEmail: (props) => (
-        <div style={{ padding: 10, border: '1px solid #ddd', borderRadius: 5, background: '#f7fafc' }}>
-            Cold Email
-        </div>
-    ),
-    delay: (props) => (
-        <div style={{ padding: 10, border: '1px solid #ddd', borderRadius: 5, background: '#ffe4c4' }}>
-            Wait/Delay
-        </div>
-    ),
-};
 
 const NodeEditor = () => {
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const [nodeId, setNodeId] = useState(2);
 
-    const handleAddNode = useCallback((type) => {
-        const newNode = {
+    const addNode = (type: NodeType) => {
+        const newNode: CustomNode = {
             id: `${nodeId}`,
             type,
-            position: { x: Math.random() * 500, y: Math.random() * 400 },
-            data: { label: type.charAt(0).toUpperCase() + type.slice(1) },
+            data: { label: type === 'coldEmail' ? 'Cold Email' : type === 'waitDelay' ? 'Wait/Delay' : 'Lead Source' },
+            position: { x: 100 + Math.random() * 300, y: 100 + Math.random() * 300 },
         };
         setNodes((nds) => [...nds, newNode]);
         setNodeId((id) => id + 1);
-    }, [nodeId, setNodes]);
+    };
 
-    const handleRemoveNode = useCallback((id) => {
-        setNodes((nds) => nds.filter((node) => node.id !== id));
-        setEdges((eds) => eds.filter((edge) => edge.source !== id && edge.target !== id));
-    }, [setNodes, setEdges]);
+    const onConnect = (connection: Connection) => setEdges((eds) => addEdge(connection, eds));
 
-    const onConnect = useCallback(
-        (params) => setEdges((eds) => addEdge(params, eds)),
-        [setEdges]
-    );
+    const saveFlow = async () => {
+        try {
+            await axios.post('/api/flow/save', { nodes, edges });
+            alert('Flow saved successfully');
+        } catch (error) {
+            console.error('Error saving flow:', error);
+        }
+    };
 
     return (
-        <div style={{ width: '100%', height: '100%' }}>
-            <div style={{ marginBottom: 10 }}>
-                <button onClick={() => handleAddNode('coldEmail')}>Add Cold Email Node</button>
-                <button onClick={() => handleAddNode('delay')}>Add Wait/Delay Node</button>
-                <button onClick={() => handleAddNode('default')}>Add Lead Source Node</button>
-            </div>
-            <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onConnect={onConnect}
-                nodeTypes={nodeTypes}
-                fitView
-            >
-                <MiniMap />
-                <Controls />
-                <Background />
-            </ReactFlow>
-            <div style={{ marginTop: 10 }}>
-                {nodes.map((node) => (
-                    <div key={node.id} style={{ margin: '5px 0' }}>
-                        {node.data.label} (ID: {node.id}){' '}
-                        <button onClick={() => handleRemoveNode(node.id)}>Remove</button>
-                    </div>
-                ))}
-            </div>
-        </div>
+        <ReactFlowProvider>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, mt: 2 }}>
+                <Stack direction="row" spacing={2}>
+                    <Button variant="contained" onClick={() => addNode('coldEmail')}>Add Cold Email</Button>
+                    <Button variant="contained" onClick={() => addNode('waitDelay')}>Add Wait/Delay</Button>
+                </Stack>
+                <Box sx={{ height: '600px', width: '100%', border: '1px solid #ccc', mt: 2 }}>
+                    <ReactFlow
+                        nodes={nodes}
+                        edges={edges}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                        onConnect={onConnect}
+                        fitView
+                    >
+                        <Background />
+                        <Controls />
+                    </ReactFlow>
+                </Box>
+                <Button variant="contained" onClick={saveFlow}>Save Flow</Button>
+            </Box>
+        </ReactFlowProvider>
     );
 };
 
