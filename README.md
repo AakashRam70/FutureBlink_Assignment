@@ -1,2 +1,20 @@
-My task is to create an application that allows users to design and implement an email marketing sequence using a visual flowchart interface. 
-This project will utilize the MERN stack (MongoDB, Express.js, React, and Node.js) and the React Flow library for the frontend flowchart interface while using Agenda & Nodemailer for the backend.
+# Email Marketing Sequence Application
+
+## Project Overview
+This application allows users to design and implement an email marketing sequence using a visual flowchart interface. It uses the MERN stack, React Flow for flowchart design, and Agenda & Nodemailer for scheduling emails.
+
+### Features
+- Authentication using JWT
+- Email scheduling using Agenda and Nodemailer
+- Flowchart design using React Flow
+
+## Installation
+
+### Prerequisites
+- Node.js
+- MongoDB
+
+### Setup
+1. Clone the repository:
+   ```bash
+
